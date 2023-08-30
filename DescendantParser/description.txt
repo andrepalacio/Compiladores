@@ -1,0 +1,69 @@
+Gramática
+    prog ::= 'BEGIN' stmts 'END'
+
+    stmts ::= stmt*
+
+    stmt ::= printstmt
+    			| ifstmt
+    			| assignstmt
+
+    printstmt ::= 'PRINT' exprlist ';'
+
+    ifstmt ::= 'IF' '(' expr ')' 'THEN' expr ';'
+
+    assignstmt ::= IDENT '=' expr ';'
+
+    expr ::= term '+' expr
+    			| term '-' expr
+    			| term
+
+    term ::= factor '*' term
+    			| factor '/' term
+    			| factor
+
+    factor ::= literal
+    			| IDENT
+    			| '(' expr ')'
+
+    literal ::= ICONST
+    			| RCONST
+    			| SCONST
+
+    exprlist ::= expr (',' expr)*
+
+Considerando la gramática, debería primero partirse de la creación del AST
+
+prog:
+'BEGIN'
+  stmts:
+    stmt:
+      printstmt:
+        'PRINT' exprlist ';'
+          exprlist: expr (',' expr)*
+            {expr}
+      ifstmt:
+        'IF' '(' expr ')' 'THEN' expr ';'
+          {expr}
+      assignstmt:
+        IDENT '=' expr ';'
+          {expr}
+'END'
+
+Cosas a tener en cuenta, no existe una especificación de lo que es IDENT
+Por resumir el AST, se toma {expr} como referencia al código explícito de expr a continuación
+
+expr:
+  term '+' expr
+  term '-' expr
+  term
+    term:
+      factor '*' term
+      factor '/' term
+      factor
+        factor:
+          literal:
+              ICONST
+              RCONST
+              SCONST
+          IDENT
+          '(' expr ')'

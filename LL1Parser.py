@@ -61,19 +61,24 @@ class LL1_Parser(object):
             for production in self.grammar[non_terminal]:
                 if symbol in production:
                     index = production.index(symbol)
-                    if index+1 == len(production) or index == 0:
+                    if index+1 == len(production):
                         if non_terminal != symbol:
                             followTerm = self.calculate_follow(non_terminal)
                             for terminal in followTerm:
-                              if terminal not in follow:   
-                                follow.append(terminal)
+                                if terminal not in follow:
+                                    follow.append(terminal)
                     elif production[index + 1] not in self.grammar:
                             follow.append(production[index + 1])
                     else:
                         first = self.calculate_first(production[index + 1])
                         for terminal in first:
-                            if terminal not in follow:   
+                            if terminal not in follow and terminal != 'epsilon':   
                                 follow.append(terminal)
+                        if 'epsilon' in first:
+                            followTerm = self.calculate_follow(production[index + 1])
+                            for terminal in followTerm:
+                                if terminal not in follow:
+                                    follow.append(terminal)
         return follow
     
     def construct_parse_table(self):
@@ -134,13 +139,27 @@ class LL1_Parser(object):
         self.print_table()
 
 if __name__ == '__main__':
-    grammar = grammar = {
-    "S": [["A", "k", "O"]],
-    "A": [["a", "A''"]],
-    "A''": [["B", "A'"], ["C", "A'"]],
-    "C": [["c"]],
-    "B": [["b", "B", "C"], ["r"]],
-    "A'": [["d", "A'"], ["epsilon"]]
+    grammar = {
+        # Gramatica de prueba 1
+        "S": [["A", "k", "O"]],
+        "A": [["a", "A''"]],
+        "A''": [["B", "A'"], ["C", "A'"]],
+        "C": [["c"]],
+        "B": [["b", "B", "C"], ["r"]],
+        "A'": [["d", "A'"], ["epsilon"]]
+        # Gramatica de prueba 2
+        # "E": [["T", "E'"]],
+        # "E'": [["+", "T", "E'"], ["-", "T", "E'"], ["epsilon"]],
+        # "T": [["F", "T'"]],
+        # "T'": [["*", "F", "T'"], ["/", "F", "T'"], ["epsilon"]],
+        # "F": [["num"], ["(", "E", ")"]]
+        # Gramatica de prueba 3
+        # "S": [["u", "B", "D", "z"]],
+        # "B": [["w", "B'"]],
+        # "B'": [["v", "B'"], ["epsilon"]],
+        # "D": [["E", "F"]],
+        # "E": [["y"], ["epsilon"]],
+        # "F": [["x"], ["epsilon"]]
     }
 
     # try:

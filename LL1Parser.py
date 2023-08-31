@@ -163,21 +163,23 @@ class LL1_Parser(object):
         return table
     
     def parse(self, input_string):
-        input_string += '$'
-        stack = ['$', self.grammar.keys()[0]]
+        print(self.grammar.keys())
+        stack = ['$', list(self.grammar.keys())[0]]
         while stack:
             top = stack.pop()
-            if top == input_string[0]:
+            if len(input_string) == 0:
+                if top == '$':
+                    print('Aceptado')
+            elif top == input_string[0].type:
+                print(top, '->', input_string[0].value)
                 input_string = input_string[1:]
-            elif self.terminal(top):
-                return False
             elif top in self.grammar:
-                if input_string[0] not in self.table[top]:
-                    return False
-                production = self.table[top][input_string[0]]
+                if input_string[0].type not in self.table[top]:
+                    raise Exception('No es una gramática LL1')
+                production = self.table[top][input_string[0].type]
                 if production[0] != 'epsilon':
                     stack += production[::-1]
-        return True
+                print(top, '->', ' '.join(production))
     
     def print_first(self):
         for non_terminal in self.first:
@@ -205,18 +207,18 @@ class LL1_Parser(object):
 if __name__ == '__main__':
     grammar = {
         # Gramatica de prueba 1
-        "S": [["A", "k", "O"]],
-        "A": [["a", "A''"]],
-        "A''": [["B", "A'"], ["C", "A'"]],
-        "C": [["c"]],
-        "B": [["b", "B", "C"], ["r"]],
-        "A'": [["d", "A'"], ["epsilon"]]
+        # "S": [["A", "k", "O"]],
+        # "A": [["a", "A''"]],
+        # "A''": [["B", "A'"], ["C", "A'"]],
+        # "C": [["c"]],
+        # "B": [["b", "B", "C"], ["r"]],
+        # "A'": [["d", "A'"], ["epsilon"]]
         # Gramatica de prueba 2
-        # "E": [["T", "E'"]],
-        # "E'": [["+", "T", "E'"], ["-", "T", "E'"], ["epsilon"]],
-        # "T": [["F", "T'"]],
-        # "T'": [["*", "F", "T'"], ["/", "F", "T'"], ["epsilon"]],
-        # "F": [["num"], ["(", "E", ")"]]
+        "E": [["T", "E'"]],
+        "E'": [["+", "T", "E'"], ["-", "T", "E'"], ["epsilon"]],
+        "T": [["F", "T'"]],
+        "T'": [["*", "F", "T'"], ["/", "F", "T'"], ["epsilon"]],
+        "F": [["INT"], ["(", "E", ")"]]
         # Gramatica de prueba 3
         # "S": [["u", "B", "D", "z"]],
         # "B": [["w", "B'"]],
@@ -226,14 +228,19 @@ if __name__ == '__main__':
         # "F": [["x"], ["epsilon"]]
     }
 
-    data = '''34 + 5 * 6 / 2 - 1'''
-
+    data = '''34 + 5 * 6'''
     lexer = Lexer()
+    tokens = []
     for tok in lexer.tokenize(data):
-        print(tok)
+        tokens.append(tok)
+
+    print(tokens)
+    # data = ['number', '+', 'num', '*', 'num']
+    parser = LL1_Parser(grammar)
+    parser.print_all()
+    parser.parse(tokens)
 
     # try:
-    # parser = LL1_Parser(grammar)
     # parser.print_all()
     # except:
         # print('No es LL1')

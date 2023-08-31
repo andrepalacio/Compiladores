@@ -1,6 +1,70 @@
-#I need a Lexer analizer for any grammar:
+from sly import Lexer
 
+class Lexer(Lexer):
 
+    tokens = {
+        #Palabras reservadas
+        IF, ELSE, WHILE, FOR, IN, RETURN, BREAK, CONTINUE, FUNCTION, VAR, PRINT, READ,
+        
+        #Tipos de datos
+        INT, FLOAT, STRING, BOOL,
+
+        #Operadores
+        ASSIGN, EQ, NEQ, LT, LE, GT, GE, AND, OR, NOT,
+
+        #Idetificador
+        ID,
+    }
+
+    literals = { '+', '-', '*', '/', '(', ')', '[', ']', '{', '}', ';', ',', ':' }
+
+    #Definir tokens
+    IF = r'if'
+    ELSE = r'else'
+    WHILE = r'while'
+    FOR = r'for'
+    IN = r'in'
+    RETURN = r'return'
+    BREAK = r'break'
+    CONTINUE = r'continue'
+    FUNCTION = r'function'
+    VAR = r'var'
+    PRINT = r'print'
+    READ = r'read'
+    
+    FLOAT = r'\d*\.\d+(e-?\d+)?|\d+(e-?\d+)' # 1.2, 1.2e-3, 1e-3
+    INT = r'\d+' # 123
+    STRING = r'\".*\"'
+    BOOL = r'true|false'
+
+    EQ = r'=='
+    NEQ = r'!='
+    LE = r'<='
+    GE = r'>='
+    LT = r'<'
+    GT = r'>'
+    AND = r'&&'
+    OR = r'\|\|'
+    NOT = r'!'
+    ASSIGN = r'='
+
+    ID = r'[a-zA-Z_][a-zA-Z0-9_]*'
+
+    #Ignorar espacios en blanco
+    ignore = ' \t'
+
+    #Ignorar comentarios
+    ignore_comment = r'\/\/.*'
+
+    #Ignorar saltos de linea
+    @_(r'\n+')
+    def ignore_newline(self, t):
+        self.lineno += t.value.count('\n')
+
+    #Manejo de errores
+    def error(self, t):
+        print('Caracter Ilegal %s' % t.value[0])
+        self.index += 1
     
 
 class LL1_Parser(object):
@@ -162,8 +226,14 @@ if __name__ == '__main__':
         # "F": [["x"], ["epsilon"]]
     }
 
+    data = '''34 + 5 * 6 / 2 - 1'''
+
+    lexer = Lexer()
+    for tok in lexer.tokenize(data):
+        print(tok)
+
     # try:
-    parser = LL1_Parser(grammar)
-    parser.print_all()
+    # parser = LL1_Parser(grammar)
+    # parser.print_all()
     # except:
         # print('No es LL1')

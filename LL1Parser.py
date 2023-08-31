@@ -1,4 +1,7 @@
+#I need a Lexer analizer for any grammar:
 
+
+    
 
 class LL1_Parser(object):
     
@@ -11,33 +14,48 @@ class LL1_Parser(object):
         self.construct_follow()
         self.construct_parse_table()
 
-    def construct_first(self):
-        for non_terminal in self.grammar:
+    def construct_first(self): 
+        for non_terminal in self.grammar: 
             self.first[non_terminal] = self.calculate_first(non_terminal)
+    
+    def calculate_first(self, nt_symbol, visited=None):
+        if visited is None:
+            visited = set()  # Para evitar bucles infinitos en la recursión
+        first = []
+        if nt_symbol in visited:
+            return first
+        visited.add(nt_symbol)
+        if nt_symbol in self.first:
+            return self.first[nt_symbol]
+        else:
+            for production in self.grammar[nt_symbol]:
+                for symbol in production:
+                    if symbol == nt_symbol:
+                        continue
+                    elif symbol not in self.grammar:
+                        first.append(symbol)
+                        break
+                    else:
+                        symbol_first = self.calculate_first(symbol, visited)
+                        first.extend(symbol_first)
+                        if 'epsilon' not in symbol_first:
+                            break  # Si no contiene epsilon, no se puede agregar más
+                        else:
+                            first.remove('epsilon')  # Eliminar epsilon de los primeros
+                else:
+                    first.append('epsilon')  # Agregar epsilon solo si todos los símbolos producen epsilon
+        return first
 
-    def construct_follow(self):
+    
+    def construct_follow(self): 
         for non_terminal in self.grammar:
             self.follow[non_terminal] = self.calculate_follow(non_terminal)
-    
-    def calculate_first(self, symbol):
-        first = []
-        if symbol in self.first:
-            return self.first[symbol]
-        else:
-            for production in self.grammar[symbol]:
-                if production[0] == 'epsilon':
-                    continue
-                elif production[0] not in self.grammar:
-                    first.append(production[0])
-                else:
-                    first += self.calculate_first(production[0])
-        return first
     
     def calculate_follow(self, symbol):
         follow = []
         if symbol in self.follow:
             return self.follow[symbol]
-        elif symbol == 'E':
+        elif symbol == list(self.grammar.keys())[0]:
             follow.append('$')
         for non_terminal in self.grammar:
             for production in self.grammar[non_terminal]:
@@ -45,7 +63,10 @@ class LL1_Parser(object):
                     index = production.index(symbol)
                     if index+1 == len(production) or index == 0:
                         if non_terminal != symbol:
-                            follow += self.calculate_follow(non_terminal)
+                            followTerm = self.calculate_follow(non_terminal)
+                            for terminal in followTerm:
+                              if terminal not in follow:   
+                                follow.append(terminal)
                     elif production[index + 1] not in self.grammar:
                             follow.append(production[index + 1])
                     else:
@@ -98,11 +119,11 @@ class LL1_Parser(object):
             print ('Follow(', non_terminal, ') = {', ', '.join(self.follow[non_terminal]), '}')
 
     def print_table(self):
-        print('Tabla de sintaxis', end='')
         for non_terminal in self.table:
-            print (f'\n {non_terminal}', end='')
+            print ('M(', non_terminal, ') = {')
             for terminal in self.table[non_terminal]:
-                print (f'\t{terminal} : {self.table[non_terminal][terminal]}', end='|')
+                print ('\t', terminal, ':', self.table[non_terminal][terminal])
+            print ('}')
     
     def print_all(self):
         print ('First:')
@@ -113,12 +134,17 @@ class LL1_Parser(object):
         self.print_table()
 
 if __name__ == '__main__':
-    grammar = {
-        "E": [["T", "E'"]],
-        "E'": [["+", "T", "E'"], ["-", "T", "E'"], ["epsilon"]],
-        "T": [["F", "T'"]],
-        "T'": [["*", "F", "T'"], ["/", "F", "T'"], ["epsilon"]],
-        "F": [["num"], ["(", "E", ")"]]
+    grammar = grammar = {
+    "S": [["A", "k", "O"]],
+    "A": [["a", "A''"]],
+    "A''": [["B", "A'"], ["C", "A'"]],
+    "C": [["c"]],
+    "B": [["b", "B", "C"], ["r"]],
+    "A'": [["d", "A'"], ["epsilon"]]
     }
+
+    # try:
     parser = LL1_Parser(grammar)
     parser.print_all()
+    # except:
+        # print('No es LL1')
